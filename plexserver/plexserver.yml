@@ -1,0 +1,96 @@
+apiVersion: 2021-03-01
+location: westeurope
+name: plexserver
+type: Microsoft.ContainerInstance/containerGroups
+properties:
+  osType: Linux
+  imageRegistryCredentials:
+    - server: <imgRegistry>.azurecr.io
+      username: <password>
+      password: <username>
+  containers:
+    - name: plex
+      properties:
+        image: <imgRegistry>.azurecr.io/pms-docker
+        ports:
+          - port: 32400
+        resources:
+          requests:
+            cpu: 4
+            memoryInGB: 8
+        environmentVariables:
+          - name: TZ
+            value: Europe/Amsterdam
+          - name: PLEX_CLAIM
+            value: <PlexClaimcode>
+        volumeMounts:
+          - mountPath: /config
+            name: plexconfig
+          - mountPath: /transcode
+            name: transcode
+          - mountPath: /xteve
+            name: xteve
+          - mountPath: /media
+            name: plexmedia
+    - name: xteve
+      properties:
+        image: <imgRegistry>.azurecr.io/xteve
+        ports:
+          - port: 34400
+        resources:
+          requests:
+            cpu: 4
+            memoryInGB: 8
+        environmentVariables:
+          - name: TZ
+            value: Europe/Amsterdam
+        volumeMounts:
+          - mountPath: /home/xteve/conf
+            name: xteve
+    - name: cloudflared
+      properties:
+        image: <imgRegistry>.azurecr.io/cloudflared
+        command:
+          - cloudflared
+          - tunnel
+          - --no-autoupdate
+          - run
+        resources:
+          requests:
+            cpu: 1
+            memoryInGB: 0.5
+        environmentVariables:
+          - name: TUNNEL_TOKEN
+            value: <CfTunnelToken>
+  ipAddress:
+    type: Private
+    ports:
+      - protocol: tcp
+        port: 32400
+  networkProfile:
+    id: /subscriptions/<subscription>/resourceGroups/<resourcegroup>/providers/Microsoft.Network/networkProfiles/plex-netprofile
+  volumes:
+    - name: plexconfig
+      azureFile:
+        sharename: plexconfig
+        storageAccountName: <storagename>
+        storageAccountKey: <storagekey>
+    - name: xteve
+      azureFile:
+        sharename: xteve
+        storageAccountName: <storagename>
+        storageAccountKey: <storagekey>
+    - name: transcode
+      azureFile:
+        sharename: transcode
+        storageAccountName: <storagename>
+        storageAccountKey: <storagekey>
+    - name: plexmedia
+      azureFile:
+        sharename: plexmedia
+        storageAccountName: <storagename>
+        storageAccountKey: <storagekey>
+  diagnostics:
+    logAnalytics:
+      WorkspaceId: <WorkspaceId>
+      WorkspaceKey: <WorkspaceKey>

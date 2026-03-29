@@ -1,0 +1,22 @@
+{
+  "location": "westeurope",
+  "properties": {
+    "containerNetworkInterfaceConfigurations": [
+      {
+        "name": "eth0",
+        "properties": {
+          "ipConfigurations": [
+            {
+              "name": "ipconfigprofile1",
+              "properties": {
+                "subnet": {
+                  "id": "/subscriptions/<subscription>/resourceGroups/<resourcegroup>/providers/Microsoft.Network/virtualNetworks/<networkname>/subnets/<subnetname>"
+                }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
